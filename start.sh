@@ -1,4 +1,5 @@
 #!/bin/bash
+sysctl -w kernel.shmmax=1073741824
 service postgresql start
 if [ -z $OPTIMIZE_POSTGRESQL ]; then
   ./configPostgresql.sh dw n
