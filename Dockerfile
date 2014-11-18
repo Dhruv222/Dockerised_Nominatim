@@ -36,14 +36,15 @@ RUN apt-get -y install libprotobuf-c0-dev protobuf-c-compiler
 RUN apt-get install -y sudo
 
 RUN pear install DB
-RUN useradd -m -p password1234 nominatim
 RUN mkdir -p /app/nominatim
-RUN git clone --recursive https://github.com/twain47/Nominatim.git /app/nominatim
-RUN cd /app/nominatim && git pull && git submodule update --init
+RUN useradd -m -p password1234 -d /app/nominatim nominatim
+RUN chown nominatim: /app/nominatim
 WORKDIR /app/nominatim
-RUN ./autogen.sh
-RUN ./configure
-RUN make
+RUN sudo -u nominatim git clone --recursive https://github.com/twain47/Nominatim.git /app/nominatim/
+RUN sudo -u nominatim -s -- cd /app/nominatim && git pull && git submodule update --init
+RUN sudo -u nominatim ./autogen.sh
+RUN sudo -u nominatim ./configure
+RUN sudo -u nominatim make
 
 # Configure postgresql
 RUN service postgresql start && \
@@ -56,15 +57,20 @@ RUN service postgresql start && \
   sudo -u postgres psql postgres -tAc "SELECT 1 FROM pg_roles WHERE rolname='www-data'" | grep -q 1 || sudo -u postgres createuser -SDR www-data && \
   sudo -u postgres psql postgres -c "DROP DATABASE IF EXISTS nominatim"
 
-RUN wget --output-document=/app/data.pbf http://download.geofabrik.de/north-america-latest.osm.pbf
+# RUN sudo -u nominatim -s -- wget --output-document=/app/nominatim/data.pbf http://download.geofabrik.de/south-america/argentina-latest.osm.pbf
 # RUN wget --output-document=/app/data.pbf http://download.geofabrik.de/north-america/us/delaware-latest.osm.pbf
+ADD data.pbf /app/nominatim/data.pbf
+RUN chown nominatim: data.pbf
 
 WORKDIR /app/nominatim
-RUN ./utils/setup.php --help
+RUN sudo -u nominatim -s -- ./utils/setup.php --help
+
+# Add support for osm2pgsql new
+RUN apt-get install -y python-software-properties && add-apt-repository -y ppa:kakrueger/openstreetmap && apt-get update && apt-get --no-install-recommends install -y osm2pgsql
 
 
 RUN service postgresql start && \
-  sudo -u nominatim ./utils/setup.php --osm-file /app/data.pbf --all --threads 2
+  sudo -u nominatim -- ./utils/setup.php --osm-file /app/nominatim/data.pbf --all --threads 2 2>&1; sudo -u nominatim -- ./utils/setup.php --index --create-search-indices
 
 ADD local.php /app/nominatim/settings/local.php
 
