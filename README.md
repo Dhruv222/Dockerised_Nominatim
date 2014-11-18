@@ -13,6 +13,9 @@ docker pull nisaacson/nominatim-docker
 To rebuild the image locally execute
 
 ```
+./download_data_xml.sh
+# Manually edit XML and remove last nodes, because they are repeated
+./convert_data_xml_to_pbf.sh
 docker build -t nominatim .
 ```
 
