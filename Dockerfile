@@ -72,7 +72,7 @@ RUN apt-get install -y osm2pgsql
 
 
 RUN service postgresql start && \
-  sudo -u nominatim -- ./utils/setup.php --osm-file /app/nominatim/data.pbf --all --threads 2 2>&1; sudo -u nominatim -- ./utils/setup.php --index --create-search-indices
+  sudo -u nominatim -- ./utils/setup.php --osm-file /app/nominatim/data.pbf --all --threads 2 2>&1
 
 ADD local.php /app/nominatim/settings/local.php
 
