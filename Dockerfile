@@ -1,4 +1,4 @@
-FROM ubuntu:12.04
+FROM ubuntu:14.04
 
 RUN apt-get update
 
@@ -14,7 +14,8 @@ RUN apt-get -y install libpq-dev
 RUN apt-get install -y libbz2-dev
 RUN apt-get install -y libtool libproj-dev
 RUN apt-get install -y libgeos++-dev
-RUN apt-get -y install gcc proj-bin libgeos-c1 git osmosis
+RUN apt-get install -y libboost-dev libboost-system-dev libboost-filesystem-dev libboost-thread-dev libexpat-dev
+RUN apt-get -y install gcc proj-bin libgeos-c1 git osmosis autoconf-archive
 RUN apt-get -y install php5 php-pear php5-pgsql php5-json
 
 # Some additional packages that may not already be installed
@@ -22,7 +23,7 @@ RUN apt-get -y install php5 php-pear php5-pgsql php5-json
 RUN apt-get -y install bc
 
 # Install Postgres, PostGIS and dependencies
-RUN apt-get -y install postgresql postgis postgresql-contrib postgresql-9.1-postgis postgresql-server-dev-9.1
+RUN apt-get -y install postgresql postgis postgresql-contrib postgresql-9.3-postgis-2.1 postgresql-server-dev-9.3
 
 # Install Apache
 RUN apt-get -y install apache2
@@ -48,9 +49,9 @@ RUN sudo -u nominatim make
 
 # Configure postgresql
 RUN service postgresql start && \
-  pg_dropcluster --stop 9.1 main
+  pg_dropcluster --stop 9.3 main
 RUN service postgresql start && \
-  pg_createcluster --start -e UTF-8 9.1 main
+  pg_createcluster --start -e UTF-8 9.3 main
 
 RUN service postgresql start && \
   sudo -u postgres psql postgres -tAc "SELECT 1 FROM pg_roles WHERE rolname='nominatim'" | grep -q 1 || sudo -u postgres createuser -s nominatim && \
@@ -66,7 +67,8 @@ WORKDIR /app/nominatim
 RUN sudo -u nominatim -s -- ./utils/setup.php --help
 
 # Add support for osm2pgsql new
-RUN apt-get install -y python-software-properties && add-apt-repository -y ppa:kakrueger/openstreetmap && apt-get update && apt-get --no-install-recommends install -y osm2pgsql
+RUN apt-get install -y python-software-properties 
+RUN apt-get install -y osm2pgsql
 
 
 RUN service postgresql start && \
