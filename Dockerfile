@@ -42,7 +42,7 @@ RUN useradd -m -p password1234 -d /app/nominatim nominatim
 RUN chown nominatim: /app/nominatim
 WORKDIR /app/nominatim
 RUN sudo -u nominatim git clone --recursive https://github.com/twain47/Nominatim.git /app/nominatim/
-RUN sudo -u nominatim -s -- cd /app/nominatim && git pull && git submodule update --init
+RUN sudo -u nominatim -s -- cd /app/nominatim && git pull
 RUN sudo -u nominatim ./autogen.sh
 RUN sudo -u nominatim ./configure
 RUN sudo -u nominatim make
@@ -72,7 +72,7 @@ RUN apt-get install -y osm2pgsql
 
 
 RUN service postgresql start && \
-  sudo -u nominatim -- ./utils/setup.php --osm-file /app/nominatim/data.pbf --all --threads 2 2>&1
+  sudo -u nominatim -- ./utils/setup.php --osm-file /app/nominatim/data.pbf --all 2>&1
 
 ADD local.php /app/nominatim/settings/local.php
 
@@ -97,3 +97,4 @@ RUN chmod +x ./configPostgresql.sh
 ADD start.sh /app/nominatim/start.sh
 RUN chmod +x /app/nominatim/start.sh
 CMD /app/nominatim/start.sh
+
